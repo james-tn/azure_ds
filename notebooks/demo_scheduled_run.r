@@ -16,7 +16,3 @@ write.df(df, path="dbfs:/mnt/demo/csv/duration.parquet", source="parquet", mode=
 
 df <- filter(df, df$duration_hours >3)
 display(df)
-
-# COMMAND ----------
-
-display(df)
