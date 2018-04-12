@@ -13,35 +13,14 @@ from pyspark.sql.functions import *
 
 # COMMAND ----------
 
-#This function extract EV column and construct new columns out of key-value pairs
-#Assuming we pass on a schema as a dictionary in format {key1:default_value,key2:default_value...}
-def process_val_row(row, schema):
-    #step 0: retrieve complex EV as a dict
-    val = row.asDict()
-    ev_dict = ast.literal_eval(val.get('EV'))
-    #step 1: validation to make sure the actual schema is registered, if unregistered, return invalid status together with data
-    if (not set(ev_dict.keys()).issubset(set(schema.keys()))): 
-      return {"invalid_schema":"",**ev_dict, **val}
-    #step 2: process valid records    
-    updated_new_dict = {reg_key: ev_dict.get(reg_key,schema[reg_key]) for reg_key in schema.keys()}
-    for key in schema.keys():
-        if " " in key:
-          updated_new_dict[key.replace(" ", "_")] = updated_new_dict.pop(key)
-    del val['EV']
-    combined_dict = {**updated_new_dict, **val }
-
-    return Row(**combined_dict)
-
-# COMMAND ----------
-
-#This is the configuration in hadoop to enable direct access to datalake store
-tenant_id = '72f988bf-86f1-41af-91ab-2d7cd011db47'
-client_id = 'af883abf-89dd-4889-bdb3-1ee84f68465e'
-client_secret = 'qId6BcZ6z03/Z5W9lSbuLMjPvfTF4yBpVAxrBoJHVBE='
-spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.access.token.provider.type", "ClientCredential")
-spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.client.id", client_id)
-spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.credential", client_secret)
-spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.refresh.url", "https://login.microsoftonline.com/"+tenant_id+"/oauth2/token")
+# #This is the configuration in hadoop to enable direct access to datalake store
+# tenant_id = '72f988bf-86f1-41af-91ab-2d7cd011db47'
+# client_id = 'af883abf-89dd-4889-bdb3-1ee84f68465e'
+# client_secret = 'qId6BcZ6z03/Z5W9lSbuLMjPvfTF4yBpVAxrBoJHVBE='
+# spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.access.token.provider.type", "ClientCredential")
+# spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.client.id", client_id)
+# spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.credential", client_secret)
+# spark.sparkContext._jsc.hadoopConfiguration().set("dfs.adls.oauth2.refresh.url", "https://login.microsoftonline.com/"+tenant_id+"/oauth2/token")
 
 
 
@@ -62,22 +41,22 @@ spark.conf.set("dfs.adls.oauth2.refresh.url", "https://login.microsoftonline.com
 
 # COMMAND ----------
 
-#This option is to create a mount point in DBFS to map to a location in datalake store. Now for some reason, this is much faster for reading than direct access
+# #This option is to create a mount point in DBFS to map to a location in datalake store. Now for some reason, this is much faster for reading than direct access
 
-configs = {"dfs.adls.oauth2.access.token.provider.type": "ClientCredential",
-           "dfs.adls.oauth2.client.id": 'af883abf-89dd-4889-bdb3-1ee84f68465e',
-           "dfs.adls.oauth2.credential": 'qId6BcZ6z03/Z5W9lSbuLMjPvfTF4yBpVAxrBoJHVBE=',
-           "dfs.adls.oauth2.refresh.url": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/token"}
-dbutils.fs.mount(
-  source = "adl://adlstore01.azuredatalakestore.net/demo_data/",
-  mount_point = "/mnt/demo/csv",
-  extra_configs = configs)
+# configs = {"dfs.adls.oauth2.access.token.provider.type": "ClientCredential",
+#            "dfs.adls.oauth2.client.id": 'af883abf-89dd-4889-bdb3-1ee84f68465e',
+#            "dfs.adls.oauth2.credential": 'qId6BcZ6z03/Z5W9lSbuLMjPvfTF4yBpVAxrBoJHVBE=',
+#            "dfs.adls.oauth2.refresh.url": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/token"}
+# dbutils.fs.mount(
+#   source = "adl://adlstore01.azuredatalakestore.net/demo_data/",
+#   mount_point = "/mnt/demo/csv",
+#   extra_configs = configs)
 
 
 
 # COMMAND ----------
 
-dbutils.fs.unmount("/mnt/demo/csv")
+# dbutils.fs.unmount("/mnt/demo/csv")
 
 # COMMAND ----------
 
@@ -85,10 +64,6 @@ df = spark.read.csv("/mnt/demo/csv/BostonWeather.csv", header=True)
 
 
 df.show()
-
-# COMMAND ----------
-
-
 
 # COMMAND ----------
 
