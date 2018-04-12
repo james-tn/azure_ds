@@ -1,5 +1,4 @@
 # Databricks notebook source
-
 library(SparkR)
 df <- read.df("/mnt/demo/csv/201501-hubway-tripdata.csv",
                     source = "csv", header="true", inferSchema = "true")
@@ -11,3 +10,4 @@ write.df(df, path="dbfs:/mnt/demo/csv/duration.parquet", source="parquet", mode=
 
 #update from R
 #Another update
+#yes, this is ok from databricks
