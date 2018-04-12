@@ -8,3 +8,6 @@ df$duration_hours <- df$tripduration / 60
 df <- select(df, "duration_hours","starttime")
 df <- filter(df, df$duration_hours >2)
 write.df(df, path="dbfs:/mnt/demo/csv/duration.parquet", source="parquet", mode="overwrite")
+
+#update from R
+#Another update
