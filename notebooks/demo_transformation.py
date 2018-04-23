@@ -84,16 +84,17 @@ df.toPandas().to_csv("/dbfs/mnt/demo/csv/20150401-consol-tripdata.csv")
 # COMMAND ----------
 
 
-
+#this snipset demonstrates listing files in a directory. This can be used to implement incremental loading by comparing the files at a staging directory against a watermark table (can be a spark table or SQL table), if there're differences then we process the delta
 file_list = dbutils.fs.ls("/mnt/demo/csv")
 item = file_list[0]
-item.name
+print(item.name)
 
-# test_local_load = pd.read_csv("/dbfs/mnt/demo/csv/201510-hubway-tripdata.csv")
+test_local_load = pd.read_csv("/dbfs/mnt/demo/csv/201510-hubway-tripdata.csv")
+
 
 # COMMAND ----------
 
-#This demonstrate using R to work directly with csv data on server
+#This demonstrate using R to work directly with csv data on server. Data scientists can use this workbench to develop R directly on server data
 %r
 r <-read.csv("/dbfs/mnt/demo/csv/201510-hubway-tripdata.csv")
 head(r)
