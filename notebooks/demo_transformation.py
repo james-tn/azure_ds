@@ -8,7 +8,7 @@ from pyspark.sql import SparkSession
 from pyspark.sql import Row 
 import ast
 from pyspark.sql.functions import *
-
+import pandas as pd
 
 
 # COMMAND ----------
@@ -43,23 +43,25 @@ spark.conf.set("dfs.adls.oauth2.refresh.url", "https://login.microsoftonline.com
 
 # #This option is to create a mount point in DBFS to map to a location in datalake store. Now for some reason, this is much faster for reading than direct access
 
-# configs = {"dfs.adls.oauth2.access.token.provider.type": "ClientCredential",
-#            "dfs.adls.oauth2.client.id": 'af883abf-89dd-4889-bdb3-1ee84f68465e',
-#            "dfs.adls.oauth2.credential": 'qId6BcZ6z03/Z5W9lSbuLMjPvfTF4yBpVAxrBoJHVBE=',
-#            "dfs.adls.oauth2.refresh.url": "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47/oauth2/token"}
-# dbutils.fs.mount(
-#   source = "adl://adlstore01.azuredatalakestore.net/demo_data/",
-#   mount_point = "/mnt/demo/csv",
-#   extra_configs = configs)
+configs = {"dfs.adls.oauth2.access.token.provider.type": "ClientCredential",
+           "dfs.adls.oauth2.client.id": client_id,
+           "dfs.adls.oauth2.credential": client_secret,
+           "dfs.adls.oauth2.refresh.url": "https://login.microsoftonline.com/"+tenant_id+"/oauth2/token"}
+dbutils.fs.mount(
+  source = "adl://adlstore01.azuredatalakestore.net/demo_data/",
+  mount_point = "/mnt/demo/csv",
+  extra_configs = configs)
 
-
-
-# COMMAND ----------
-
-# dbutils.fs.unmount("/mnt/demo/csv")
+# the mount_point is now the alias for the remote data
 
 # COMMAND ----------
 
+#only use this to unmount the mount point
+dbutils.fs.unmount("/mnt/demo/csv")
+
+# COMMAND ----------
+
+#With mount point, it's easy to read from datalake store
 df = spark.read.csv("/mnt/demo/csv/BostonWeather.csv", header=True)
 
 
@@ -72,12 +74,33 @@ df.show()
 df1 = spark.read.csv("adl://adlstore01.azuredatalakestore.net/demo_data/201501-hubway-tripdata.csv", header=True)
 df2 = spark.read.csv("adl://adlstore01.azuredatalakestore.net/demo_data/201504-hubway-tripdata.csv", header=True)
 df = df1.union(df2)
-df.write.mode("overwrite").save("adl://adlstore01.azuredatalakestore.net/demo_data/20150401-hubway-tripdata.csv",format="csv")
+#Method 1: writing result data using distributed file system supported in Spark using mount point as alias. Data will be written to multiple partition within the folder
+df.write.mode("overwrite").save("/mnt/demo/csv/20150401-spark-tripdata.csv",format="com.databricks.spark.csv")
+#Method 2: writing to a table format
 df.select("tripduration", "starttime", "stoptime").write.mode("overwrite").saveAsTable("20150401tripdata")
+#Method 3: writing using client style csv file, preserving single client file name and format. This is not recommended when data file is larger than the memory of the driver node because first it collects all data to a driver node then save to the mount point.
+df.toPandas().to_csv("/dbfs/mnt/demo/csv/20150401-consol-tripdata.csv")
 
-# Option 2: through mount point
-# df = spark.read.format("com.databricks.spark.avro").load("dbfs:/mnt/avro/avro_test/2")
-# df = df.na.fill('NA')
+# COMMAND ----------
+
+
+
+file_list = dbutils.fs.ls("/mnt/demo/csv")
+item = file_list[0]
+item.name
+
+# test_local_load = pd.read_csv("/dbfs/mnt/demo/csv/201510-hubway-tripdata.csv")
+
+# COMMAND ----------
+
+#This demonstrate using R to work directly with csv data on server
+%r
+r <-read.csv("/dbfs/mnt/demo/csv/201510-hubway-tripdata.csv")
+head(r)
+
+# COMMAND ----------
+
+# MAGIC %sql select * from 20150401tripdata
 
 # COMMAND ----------
 
@@ -88,7 +111,12 @@ df3.show()
 
 df.createOrReplaceTempView( "weather" )
 sqlDF = spark.sql("SELECT REPORTTPYE, avg( HOURLYDRYBULBTEMPF ) FROM weather GROUP BY REPORTTPYE having REPORTTPYE <>'SOD'")
-display(sqlDF)
+sqlDF.write.mode("overwrite").save("adl://adlstore01.azuredatalakestore.net/demo_data/test.csv",format="csv")
+sqlDF.write.saveAsTable("test_tbl")
+
+# COMMAND ----------
+
+sqlDF.show()
 
 # COMMAND ----------
 
