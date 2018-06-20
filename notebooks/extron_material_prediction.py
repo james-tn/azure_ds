@@ -1,7 +1,7 @@
 # Databricks notebook source
 # This part is to connect to SQL server database and query data
-jdbcUsername='james'
-jdbcPassword='Godblessme@2018'
+jdbcUsername='your username'
+jdbcPassword='your jdbc pass'
 jdbcHostname = "msdemosql001.database.windows.net"
 jdbcDatabase = "MachineLearningMS"
 jdbcPort = 1433
