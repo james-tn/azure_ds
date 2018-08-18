@@ -1,8 +1,8 @@
 # Databricks notebook source
 # This part is to connect to SQL server database and query data
-jdbcHostname = "extronforecast.database.windows.net"
+jdbcHostname = ""
 #The new DB is restored in this DB. Forecast output is stored in forecast DB
-jdbcDatabase = "MachineLearningMS"
+jdbcDatabase = ""
 jdbcPort = 1433
 jdbcUrl = "jdbc:sqlserver://{0}:{1};database={2}".format(jdbcHostname, jdbcPort, jdbcDatabase)
 print(jdbcUrl)
