@@ -4,9 +4,9 @@ install.packages("httr", dependencies = TRUE)
 
 # COMMAND ----------
 
-tenant_id = '72f988bf-86f1-41af-91ab-2d7cd011db47'
-client_id = 'af883abf-89dd-4889-bdb3-1ee84f68465e'
-client_secret = 'qId6BcZ6z03/Z5W9lSbuLMjPvfTF4yBpVAxrBoJHVBE='
+tenant_id = ''
+client_id = ''
+client_secret = ''
 
 # COMMAND ----------
 
